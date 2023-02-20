@@ -1,0 +1,21 @@
+version: 0.2
+phases:
+  pre_build:
+    commands:
+       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 997477333591.dkr.ecr.us-east-1.amazonaws.com
+       - ECR_REPO_FRONTEND_URI="997477333591.dkr.ecr.us-east-1.amazonaws.com/slowstartflask"
+       - TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-8)
+  build:
+    commands:
+       # Building Frontend
+       - cd $CODEBUILD_SRC_DIR
+       - docker build -t $ECR_REPO_FRONTEND_URI:$TAG .
+       - docker push $ECR_REPO_FRONTEND_URI:$TAG
+       - IMAGE_URI_FRONTEND=$ECR_REPO_FRONTEND_URI:$TAG
+       - echo $IMAGE_URI_FRONTEND
+       - printf "{\"ImageURI\":\"$IMAGE_URI_FRONTEND\"}" > imageDetail.json
+       - echo "Frontend Built and Pushed"
+       # Frontend Complete
+artifacts:
+  files:
+    - '**/*'

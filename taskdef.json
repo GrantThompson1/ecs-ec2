@@ -1,0 +1,36 @@
+{
+    "containerDefinitions": [ 
+       { 
+          "essential": true,
+          "image": "<flaskapp>",
+          "logConfiguration": { 
+             "logDriver": "awslogs",
+             "options": { 
+                "awslogs-group" : "/ecs/fargate-task-definition",
+                "awslogs-region": "us-east-1",
+                "awslogs-stream-prefix": "ecs"
+             }
+          },
+          "name": "flaskapp",
+          "portMappings": [ 
+             { 
+                "containerPort": 80,
+                "hostPort": 0,
+                "protocol": "tcp"
+             }
+          ]
+       }
+    ],
+    "cpu": "256",
+    "executionRoleArn": "arn:aws:iam::997477333591:role/ecsTaskExecutionRole",
+    "family": "ecs-ec2",
+    "memory": "512",
+    "networkMode": "bridge",
+    "runtimePlatform": {
+         "operatingSystemFamily": "LINUX"
+     },
+    "requiresCompatibilities": [ 
+        "EC2" 
+     ]
+ }
+ 

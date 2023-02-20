@@ -1,0 +1,26 @@
+{
+    "cluster": "ecs-ec2",
+    "serviceName": "scaling-replication",
+    "taskDefinition": "ecs-ec2:1",
+    "loadBalancers": [
+        {
+            "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:997477333591:targetgroup/ecs-ec2-tg1/1ea4f712af0b6105",
+            "containerName": "flaskapp",
+            "containerPort": 80
+        }
+    ],
+    "desiredCount": 2,
+    "launchType": "EC2",
+    "schedulingStrategy": "REPLICA",
+    "deploymentController": {
+        "type": "CODE_DEPLOY"
+    },
+    "tags": [
+        {
+            "key": "auto-delete",
+            "value": "never"
+        }
+    ],
+    "enableECSManagedTags": true,
+    "propagateTags": "TASK_DEFINITION"
+}
