@@ -1,7 +1,7 @@
 {
     "cluster": "ecs-ec2",
     "serviceName": "scaling-replication",
-    "taskDefinition": "ecs-ec2:4",
+    "taskDefinition": "ecs-ec2:5",
     "loadBalancers": [
         {
             "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:997477333591:targetgroup/ecs-ec2-tg2/1cd6aed8180765ac",
