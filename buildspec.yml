@@ -7,7 +7,7 @@ phases:
        - TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-8)
   build:
     commands:
-       # Building Frontend
+       # Building Frontend 
        - cd $CODEBUILD_SRC_DIR
        - docker build -t $ECR_REPO_FRONTEND_URI:$TAG .
        - docker push $ECR_REPO_FRONTEND_URI:$TAG

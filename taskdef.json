@@ -12,6 +12,13 @@
              }
           },
           "name": "flaskapp",
+          "healthCheck": {
+            "command": [ "CMD-SHELL", "curl -f http://localhost/ || exit 1" ],
+            "interval": 5,
+            "timeout": 5,
+            "retries": 5,
+            "startPeriod": 300
+          },
           "portMappings": [ 
              { 
                 "containerPort": 80,
@@ -32,5 +39,4 @@
     "requiresCompatibilities": [ 
         "EC2" 
      ]
- }
- 
+ } 
