@@ -5,6 +5,27 @@ phases:
        - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 997477333591.dkr.ecr.us-east-1.amazonaws.com
        - ECR_REPO_FRONTEND_URI="997477333591.dkr.ecr.us-east-1.amazonaws.com/slowstartflask"
        - TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-8)
+       # Setting ECS Variables
+       - CLUSTER="ecs-ec2"
+       - SERVICE="scaling-replication"
+       - CURRENT_TASK_DEF=$(aws ecs describe-services --cluster ecs-ec2 --services scaling-replication | jq -r '.services[].taskSets[].taskDefinition')
+       - sed -i "s/<task_def>/$CURRENT_TASK_DEF/g" service.json
+       - exit 1
+       - aws ecs create-service
+       - aws ecs 
+       - | 
+            aws application-autoscaling register-scalable-target \
+            --service-namespace ecs \
+            --scalable-dimension ecs:service:DesiredCount \
+            --resource-id service/ecs-ec2/scaling-replication \
+            --min-capacity 1 \
+            --max-capacity 10
+       - |
+            aws application-autoscaling put-scaling-policy --service-namespace ecs \
+            --scalable-dimension ecs:service:DesiredCount \
+            --resource-id service/default/web-app \
+            --policy-name cpu75-target-tracking-scaling-policy --policy-type TargetTrackingScaling \
+            --target-tracking-scaling-policy-configuration file://config.json
   build:
     commands:
        # Building Frontend 
