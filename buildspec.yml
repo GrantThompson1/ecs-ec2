@@ -8,7 +8,7 @@ phases:
        # Setting ECS Variables
        - CLUSTER="ecs-ec2"
        - SERVICE="scaling-replication"
-       - CURRENT_TASK_DEF=$(aws ecs describe-services --cluster ecs-ec2 --services scaling-replication | jq -r '.services[].taskSets[].taskDefinition')
+       - CURRENT_TASK_DEF=$(aws ecs describe-services --cluster ecs-ec2 --services scaling-replication | jq -r '.services[].taskSets[].taskDefinition' | sed 's/.*\///')
        - sed -i "s/<task_def>/$CURRENT_TASK_DEF/g" service.json
        - exit 1
        - aws ecs create-service
