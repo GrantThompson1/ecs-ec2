@@ -2,14 +2,33 @@ version: 0.2
 phases:
   pre_build:
     commands:
+       # Setting variables:
+       - cluster="ecs-ec2"
+       - service="scaling-replication"
+       - desired_status="STEADY_STATE"
+       - CURRENT_TASK_DEF=$(aws ecs describe-services --cluster $cluster --services $service | jq -r '.services[].taskSets[].taskDefinition' | sed 's/.*\///')
+       - sed -i "s/<task_def>/$CURRENT_TASK_DEF/g" service.json
+       # Loggin in
        - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 997477333591.dkr.ecr.us-east-1.amazonaws.com
        - ECR_REPO_FRONTEND_URI="997477333591.dkr.ecr.us-east-1.amazonaws.com/slowstartflask"
        - TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-8)
-       # Setting ECS Variables
-       - CLUSTER="ecs-ec2"
-       - SERVICE="scaling-replication"
-       - CURRENT_TASK_DEF=$(aws ecs describe-services --cluster ecs-ec2 --services scaling-replication | jq -r '.services[].taskSets[].taskDefinition' | sed 's/.*\///')
-       - sed -i "s/<task_def>/$CURRENT_TASK_DEF/g" service.json
+       # Checking stability
+       - |
+            while true; do
+              # Run the command and capture the output
+              output=$(aws ecs describe-services --cluster "$cluster" --services "$service" | jq -r '.services[].taskSets[].stabilityStatus')
+
+              # Check if the status is what we want
+              if [ "$output" = "$desired_status" ]; then
+                echo "Service is in STEADY_STATE, exiting loop."
+                break
+              else
+                echo "Service is not in STEADY_STATE, waiting 15 seconds and trying again..."
+                sleep 15
+              fi
+            done
+
+       
        - exit 1
        - aws ecs create-service
        - aws ecs 
