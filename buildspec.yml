@@ -51,13 +51,13 @@ phases:
             --policy-name alb-scale-out-target-tracking-scaling-policy --policy-type TargetTrackingScaling \
             --target-tracking-scaling-policy-configuration file://scalingconfig.json
         # Suspend scaling on original service
-        - |
+       - |
             aws application-autoscaling register-scalable-target --service-namespace ecs \
             --scalable-dimension ecs:service:DesiredCount \
             --resource-id service/$cluster/$service \
             --suspended-state "{\"DynamicScalingInSuspended\":true,\"DynamicScalingOutSuspended\":true,\"ScheduledScalingSuspended\":true}"
         # scale down codedeploy to 1
-        - aws ecs update-service --cluster $cluster --service $service --desired-count 1
+       - aws ecs update-service --cluster $cluster --service $service --desired-count 1
   build:
     commands:
        # Building Frontend 
