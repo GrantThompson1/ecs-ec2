@@ -13,7 +13,7 @@ phases:
        # Updates service.json with dynamic target_group_arn and current_task_def
        - sed -i "s/<task_def>/$CURRENT_TASK_DEF/g" service.json
        - sed -i "s#<target_group_arn>#$active_target_group#g" service.json
-       - sed -i "s/<target_group>/$scaling_policy_target_group/g" scalingconfig.json
+       - sed -i "s#<target_group>#$scaling_policy_target_group#g" scalingconfig.json
        # ECR Login and Variables
        - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 997477333591.dkr.ecr.us-east-1.amazonaws.com
        - ECR_REPO_FRONTEND_URI="997477333591.dkr.ecr.us-east-1.amazonaws.com/slowstartflask"
