@@ -6,17 +6,25 @@ phases:
        - cluster="ecs-ec2"
        - service="scaling-replication"
        - desired_status="STEADY_STATE"
+       - clone_service=$(cat service.json | jq -r '.serviceName')
        - CURRENT_TASK_DEF=$(aws ecs describe-services --cluster $cluster --services $service | jq -r '.services[].taskSets[].taskDefinition' | sed 's/.*\///')
+       - active_target_group=$(aws ecs describe-services --cluster ecs-ec2 --services scaling-replication | jq -r '.services[].taskSets[].loadBalancers[].targetGroupArn')
+       - scaling_policy_target_group=$(aws ecs describe-services --cluster ecs-ec2 --services scaling-replication | jq -r '.services[].taskSets[].loadBalancers[].targetGroupArn'| awk -F'/' '{print $(NF-1)"/"$NF}')
+       # Updates service.json with dynamic target_group_arn and current_task_def
        - sed -i "s/<task_def>/$CURRENT_TASK_DEF/g" service.json
-       # Loggin in
+       - sed -i "s/<target_group_arn>/$active_target_group/g" service.json
+       - sed -i "s/<target_group>/$scaling_policy_target_group/g" scalingconfig.json
+       # ECR Login and Variables
        - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 997477333591.dkr.ecr.us-east-1.amazonaws.com
        - ECR_REPO_FRONTEND_URI="997477333591.dkr.ecr.us-east-1.amazonaws.com/slowstartflask"
        - TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-8)
+       # Create clone service
+       - aws ecs create-service --cli-input-json file://service.json
        # Checking stability
        - |
             while true; do
               # Run the command and capture the output
-              output=$(aws ecs describe-services --cluster "$cluster" --services "$service" | jq -r '.services[].taskSets[].stabilityStatus')
+              output=$(aws ecs describe-services --cluster "$cluster" --services "$clone_service" | jq -r '.services[].taskSets[].stabilityStatus')
 
               # Check if the status is what we want
               if [ "$output" = "$desired_status" ]; then
@@ -27,24 +35,29 @@ phases:
                 sleep 15
               fi
             done
-
-       
-       - exit 1
-       - aws ecs create-service
-       - aws ecs 
+       # clone_service has stablized     
+       # Enabling Scaling for clone_service  
        - | 
             aws application-autoscaling register-scalable-target \
             --service-namespace ecs \
             --scalable-dimension ecs:service:DesiredCount \
-            --resource-id service/ecs-ec2/scaling-replication \
+            --resource-id service/$cluster/$clone_service \
             --min-capacity 1 \
             --max-capacity 10
        - |
             aws application-autoscaling put-scaling-policy --service-namespace ecs \
             --scalable-dimension ecs:service:DesiredCount \
-            --resource-id service/default/web-app \
-            --policy-name cpu75-target-tracking-scaling-policy --policy-type TargetTrackingScaling \
-            --target-tracking-scaling-policy-configuration file://config.json
+            --resource-id service/$cluster/$clone_service \
+            --policy-name alb-scale-out-target-tracking-scaling-policy --policy-type TargetTrackingScaling \
+            --target-tracking-scaling-policy-configuration file://scalingconfig.json
+        # Suspend scaling on original service
+        - |
+            aws application-autoscaling register-scalable-target --service-namespace ecs \
+            --scalable-dimension ecs:service:DesiredCount \
+            --resource-id service/$cluster/$service \
+            --suspended-state "{\"DynamicScalingInSuspended\":true,\"DynamicScalingOutSuspended\":true,\"ScheduledScalingSuspended\":true}"
+        # scale down codedeploy to 1
+        - aws ecs update-service --cluster $cluster --service $service --desired-count 1
   build:
     commands:
        # Building Frontend 

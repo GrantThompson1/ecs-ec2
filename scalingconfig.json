@@ -1,0 +1,10 @@
+{
+    "TargetValue": 5.0,
+    "PredefinedMetricSpecification": {
+        "PredefinedMetricType": "ALBRequestCountPerTarget",
+        "ResourceLabel": "app/ecs-ec2/ebcc01c37e0fef21/targetgroup/<target_group>"
+    },
+   "ScaleOutCooldown": 60,
+   "ScaleInCooldown": 60,
+   "DisableScaleIn": false
+}

@@ -13,8 +13,7 @@ while true; do
     echo "Service is in STEADY_STATE, exiting loop."
     break
   else
-    echo "Service is not in STEADY_STATE, waiting 15 seconds and trying 
-again..."
+    echo "Service is not in STEADY_STATE, waiting 15 seconds and trying again..."
     sleep 15
   fi
 done

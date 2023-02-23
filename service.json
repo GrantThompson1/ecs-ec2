@@ -1,10 +1,10 @@
 {
     "cluster": "ecs-ec2",
-    "serviceName": "scaling-replication",
+    "serviceName": "scaling-replication-clone",
     "taskDefinition": "<task_def>",
     "loadBalancers": [
         {
-            "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:997477333591:targetgroup/ecs-ec2-tg2/1cd6aed8180765ac",
+            "targetGroupArn": "<target_group_arn>",
             "containerName": "flaskapp",
             "containerPort": 80
         }
