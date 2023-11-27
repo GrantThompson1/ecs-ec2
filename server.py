@@ -18,7 +18,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def root():
-  print("Handling web request. Returning message.")
+  print("Handling web request. Returning message!")
   result = MESSAGE + "\nMy Flask Application"
   result = result.encode("utf-8")
   return result
